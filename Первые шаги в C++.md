@@ -108,9 +108,17 @@ int rheas = {12};  // то же, что и `int rheas = 12;`
 Во-вторых, фигурные скобки можно оставить пустыми, тогда переменная будет инициализироваться 0
 ```c++
 int rocs = {};  // то же, что и `int rocs = 0;`
+// или без =
+int rocs{}; // int rocs = 0;
 int psychics{};  // то же, что и `int psychics = 0;`
 ```
 С++11 позволяет использовать синтаксис фигурных скобок (с или без знака `=`) в отношении всех типов -- он представляет собой ==универсальный синтаксис инициализации== (еще называют _списковая инициализацией_ [[Литература#^70c8d3]]<c. 122>).
+
+==NB! Рекомендуется не оставлять переменные без инициализации, то есть всегда сразу присваивать целевое значение==
+```c++
+int a = 42;
+```
+И рекомендуется в GCC/Clang включать предупреждение компилятора `-Wall -Wextra`
 
 В процессе компиляции исходный код передается сначала препроцессору. `#define`, как и `#include`, является _директивой препроцессора_. Эта директива сообщает препроцессору следущее: найти в программе экземпляры символической константы `INT_MAX` и заменить каждое вхождение значением `32767`. Таким образом директива `#define` работает подобно команде глобального поиска и замены в текстовом редакторе. Однако директива `#define` является пережитком языка С. В C++ имеется более удобный способ создания символических констант (с помощью ключевого слова `const`) [[Литература#^70c8d3]]<c. 92>.
 ### Введение в массивы
@@ -721,6 +729,11 @@ std::cout << (*ppa)->year << std::endl;
 ...
 vector<int> vi; // создание массива int нулевого размера
 vector<double> vd(n); // создание массива из n элементов double
+
+// или с инициализацией
+std::vector<int> ranges = {10, 20, 30}; // ДИНАМИЧЕСКИЙ массив с автоматическим управлением памятью
+// или без =
+std::vector<int> ranges {10, 20, 30}; // ДИНАМИЧЕСКИЙ массив с автоматическим управлением памятью
 ```
 
 Если просто нужен массив фиксированного размера, то можно воспользоваться шаблонным классом `array`. Объект `array` имеет фиксированный размер и использует стек (или распределение в статической памяти) вместо свободного хранилища, поэтому он характиризуется эффективностью встроенных массивов
@@ -729,5 +742,134 @@ vector<double> vd(n); // создание массива из n элементо
 ...
 array<int, 5> ai;
 array<double, 4> ad = {1.2, 2.1, 3.43, 4.3};
+// или без =
+array<double, 4> ad {1.2, 2.1, 3.43, 4.3};
+```
+
+Для того чтобы выводить булевые значения, а не числеки 0/1, нужно перед выводом добавить строку
+```c++
+int value = 42;
+std::cout.setf(std::ios_base::boolalpha);  // NB!
+std::cout << (value > 10) << std::endl; 
+```
+
+Можно использовать операции инкременте и декремента с указателями
+```c++
+int arr[3] = {10, 20, 30};
+int* ptr = arr;
+
+std::cout << "VALUE[0]: " << *ptr << std::endl;
+std::cout << "VALUE[1]: " << *++ptr << std::endl;
+```
+Здесь `*++ptr` сначала выполняется инкремент указателя, а потом уже выполняется разыменование.
+
+Если вы определяете новую переменную внутри блока, она будет существовать только во время выполнения операторов этого блока. Когда поток выполнения покидает блок, такая переменная уничтожается
+```c++
+#include <iostream>
+
+int main()
+{
+	int x = 20;
+	{
+	  int y = 100;
+	  std::cout << x << std::endl;
+	  std::cout << y << std::endl;
+	}
+
+    std::cout << x << std::endl;
+    std::cout << y << std::endl;  // ошибка во время компиляции
+}
+```
+
+Чтобы создать псевдоним для типа, можно воспользоваться ключевым словом `typedef`
+```c++
+typedef char byte; // делает byte пседонимом для char
+```
+
+Если требуется, чтобы тело цикла выполнилось хотя бы один раз, то удобно использовать цикл do-while
+```c++
+...
+std::string password;
+const std::string CORRECT_PASSWORD = "1234";
+
+do {
+  std::cout << "Enter your password: ";
+  std::cin >> password;
+} while (password != CORRECT_PASSWORD);
+
+std::cout << "Your password: " << password << std::endl;
+...
+```
+
+В С++11 была добавлена новая форма цикла, которая называется циклом `for` _основанным на диапазоне_. Она упрощает одну общую задачу цикла -- делать что-то с каждым элементом массива или, в более общем случае, с одним из контейнерных классов, таким как `vector` или `array`
+```c++
+...
+double prices[5] = {4.99, ...};
+
+for (double elem : prices) {
+  std::cout << elem << std::endl;
+}
+```
+
+Для работы с форматированными строками можно использовать библиотеку `fmt` (или `std::format` в >C++20). Установить библиотеку можно из исходников так:
+```bash
+$ git clone https://github.com/fmtlib/fmt.git
+$ cd fmt
+$ mkdir build && cd build
+$ cmake ..
+$ make -j4
+$ sudo make install  # Установка в систему
+```
+Установить `cmake` можно так https://gist.github.com/fscm/29fd23093221cf4d96ccfaac5a1a5c90:
+```bash
+$ mkdir ~/Downloads/CMake
+$ curl --silent --location --retry 3 "https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-macos-universal.dmg" --output ~/Downloads/CMake/cmake-macos.dmg 
+$ yes | PAGER=cat hdiutil attach -quiet -mountpoint /Volumes/cmake-macos ~/Downloads/CMake/cmake-macos.dmg
+$ cp -R /Volumes/cmake-macos/CMake.app /Applications/
+$ hdiutil detach /Volumes/cmake-macos
+$ sudo "/Applications/CMake.app/Contents/bin/cmake-gui" --install=/usr/local/bin
+# verify
+$ cmake --version
+```
+
+Пишем тестовый файл для проверки работоспособности библиотеки `fmt` 
+```c++
+// test.cpp
+#include <fmt/core.h>
+
+int main() {
+    fmt::print("Hello, {}!\n", "world");  // Аналог f-строки
+    fmt::print("Pi ≈ {:.2f}\n", 3.141592);  // "Pi ≈ 3.14"
+}
+```
+В корень проекта (пусть проект называется `solver`) нужно положить `CMakeLists.txt`
+```bash
+# CMakeLists.txt
+find_package(fmt REQUIRED)
+target_link_libraries(solver PRIVATE fmt::fmt)
+```
+Компилируем
+```bash
+$ clang++ -std=c++11 test.cpp -lfmt
+```
+
+Полный вариант
+```bash
+$ clang++ -std=gnu++14 -stdlib=libc++ -lfmt -fcolor-diagnostics -g gurobi.cpp -o gurobi -Wall
+```
+
+Например вывести элементы вектора можно так
+```c++
+#include <iostream>
+#include <fmt/core.h>
+...
+
+int main() { 
+    std::vector<float> scores {1.5, 3.8, 4.2};
+    
+    for (int i = 0; i < scores.size(); i++) {
+        std::cout << fmt::format("score = {}", scores[i], i) << std::endl;
+    }
+}
 ```
 
