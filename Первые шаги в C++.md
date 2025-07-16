@@ -868,8 +868,32 @@ int main() {
     std::vector<float> scores {1.5, 3.8, 4.2};
     
     for (int i = 0; i < scores.size(); i++) {
-        std::cout << fmt::format("score = {}", scores[i], i) << std::endl;
+        std::cout << fmt::format("score = {:.3f}", scores[i]) << std::endl;
     }
 }
 ```
 
+Двумерный массив можно объявить и прочитать так
+```c++
+#include <iostream>
+#include <fmt/core.h>
+
+int main()
+{
+  const int N_ROWS = 5;
+  const int N_COLS = 3;
+
+  int matrix[N_ROWS][N_COLS] = {
+    {1, 2, 3},
+    {-5, 4, 8},
+    ...
+  };
+
+  for (int i = 0; i < N_ROWS; i++) {
+    for (int j = 0; j < N_COLS; j++) {
+	  std::cout << fmt::format("a_{{{}{}}} = {}\t", i, j, matrix[i][j]);
+    }
+	std::cout << std::endl;
+  }
+}
+```
